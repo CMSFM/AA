@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public struct PlayerInputState
 {
     public float Horizontal;
