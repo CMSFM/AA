@@ -27,11 +27,17 @@ public class KeyboardInputProvider : PlayerInputProvider
             Input.GetKeyDown(KeyCode.DownArrow) ||
             Input.GetKeyDown(KeyCode.S);
 
+        bool slideHeld =
+            Input.GetKey(slideKey) ||
+            Input.GetKey(KeyCode.DownArrow) ||
+            Input.GetKey(KeyCode.S);
+
         return new PlayerInputState
         {
             Horizontal = horizontal,
             JumpPressed = jumpPressed,
-            SlidePressed = slidePressed
+            SlidePressed = slidePressed,
+            SlideHeld = slideHeld
         };
     }
 }

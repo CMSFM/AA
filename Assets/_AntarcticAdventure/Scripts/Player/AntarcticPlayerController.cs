@@ -17,7 +17,7 @@ public class AntarcticPlayerController : MonoBehaviour
     [SerializeField] private float gravity = -25f;
 
     [Header("Slide")]
-    [SerializeField] private float slideDuration = 0.75f;
+    [SerializeField] private float minimumSlideDuration = 0.25f;
     [SerializeField] private float normalHeight = 2f;
     [SerializeField] private float slideHeight = 1f;
     [SerializeField] private Vector3 normalCenter = new Vector3(0f, 0f, 0f);
@@ -30,7 +30,7 @@ public class AntarcticPlayerController : MonoBehaviour
     private float verticalVelocity;
 
     private bool isSliding;
-    private float slideTimer;
+    private float slideElapsedTime;
 
     private void Awake()
     {
@@ -41,6 +41,11 @@ public class AntarcticPlayerController : MonoBehaviour
 
         ApplyNormalCollider();
         ClampPosition();
+    }
+
+    public void SetInputProvider(PlayerInputProvider provider)
+    {
+        inputProvider = provider;
     }
 
     private void Update()
@@ -61,17 +66,22 @@ public class AntarcticPlayerController : MonoBehaviour
 
     private void UpdateSlide(PlayerInputState input)
     {
-        if (!isSliding && characterController.isGrounded && input.SlidePressed)
+        if (!isSliding)
         {
-            StartSlide();
+            if (characterController.isGrounded && (input.SlidePressed || input.SlideHeld))
+            {
+                StartSlide();
+            }
+
+            return;
         }
 
-        if (!isSliding)
-            return;
+        slideElapsedTime += Time.deltaTime;
 
-        slideTimer -= Time.deltaTime;
+        bool canEndSlide = slideElapsedTime >= minimumSlideDuration;
+        bool wantsToStopSliding = !input.SlideHeld;
 
-        if (slideTimer <= 0f)
+        if (canEndSlide && wantsToStopSliding)
         {
             EndSlide();
         }
@@ -80,7 +90,7 @@ public class AntarcticPlayerController : MonoBehaviour
     private void StartSlide()
     {
         isSliding = true;
-        slideTimer = slideDuration;
+        slideElapsedTime = 0f;
         ApplySlideCollider();
     }
 
