@@ -3,16 +3,24 @@ using UnityEngine;
 
 public class AntarcticHUDView : MonoBehaviour
 {
-    [Header("Texts")]
+    [Header("HUD Texts")]
     [SerializeField] private TMP_Text distanceText;
     [SerializeField] private TMP_Text speedText;
     [SerializeField] private TMP_Text scoreText;
 
+    [Header("Ready")]
+    [SerializeField] private GameObject readyPanel;
+    [SerializeField] private TMP_Text readyBestText;
+
     [Header("Game Over")]
     [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private TMP_Text gameOverResultText;
+
+    private bool resultShown;
 
     private void Start()
     {
+        SetReadyPanel(true);
         SetGameOverPanel(false);
     }
 
@@ -21,6 +29,8 @@ public class AntarcticHUDView : MonoBehaviour
         UpdateDistance();
         UpdateSpeed();
         UpdateScore();
+
+        UpdateReadyPanel();
         UpdateGameOverPanel();
     }
 
@@ -29,13 +39,11 @@ public class AntarcticHUDView : MonoBehaviour
         if (distanceText == null)
             return;
 
-        float distance = WorldScrollManager.Instance != null
-            ? WorldScrollManager.Instance.Distance
-            : 0f;
+        int distance = ScoreManager.Instance != null
+            ? ScoreManager.Instance.CurrentDistanceMeter
+            : 0;
 
-        int distanceInt = Mathf.FloorToInt(distance);
-
-        distanceText.text = $"DIST {distanceInt:0000} m";
+        distanceText.text = $"DIST {distance:0000} m";
     }
 
     private void UpdateSpeed()
@@ -62,6 +70,35 @@ public class AntarcticHUDView : MonoBehaviour
         scoreText.text = $"SCORE {score:000000}";
     }
 
+    private void UpdateReadyPanel()
+    {
+        bool isReady =
+            AntarcticGameManager.Instance != null &&
+            AntarcticGameManager.Instance.IsReady;
+
+        SetReadyPanel(isReady);
+
+        if (isReady)
+            UpdateReadyBestText();
+    }
+
+    private void UpdateReadyBestText()
+    {
+        if (readyBestText == null)
+            return;
+
+        int bestScore = ScoreManager.Instance != null
+            ? ScoreManager.Instance.BestScore
+            : 0;
+
+        int bestDistance = ScoreManager.Instance != null
+            ? ScoreManager.Instance.BestDistanceMeter
+            : 0;
+
+        readyBestText.text =
+            $"BEST SCORE {bestScore:000000}   BEST DIST {bestDistance:0000} m";
+    }
+
     private void UpdateGameOverPanel()
     {
         bool isGameOver =
@@ -69,6 +106,48 @@ public class AntarcticHUDView : MonoBehaviour
             AntarcticGameManager.Instance.IsGameOver;
 
         SetGameOverPanel(isGameOver);
+
+        if (isGameOver && !resultShown)
+        {
+            resultShown = true;
+            UpdateGameOverResult();
+        }
+    }
+
+    private void UpdateGameOverResult()
+    {
+        if (gameOverResultText == null)
+            return;
+
+        if (ScoreManager.Instance == null)
+        {
+            gameOverResultText.text = "NO SCORE DATA";
+            return;
+        }
+
+        ScoreManager score = ScoreManager.Instance;
+
+        string newBestText = score.IsNewBestScore
+            ? "\nNEW BEST!"
+            : "";
+
+        gameOverResultText.text =
+            $"DISTANCE {score.CurrentDistanceMeter:0000} m\n" +
+            $"SCORE {score.TotalScore:000000}\n" +
+            $"ITEM SCORE {score.ItemScore:000000}\n" +
+            $"BEST SCORE {score.BestScore:000000}" +
+            newBestText;
+    }
+
+    private void SetReadyPanel(bool isActive)
+    {
+        if (readyPanel == null)
+            return;
+
+        if (readyPanel.activeSelf == isActive)
+            return;
+
+        readyPanel.SetActive(isActive);
     }
 
     private void SetGameOverPanel(bool isActive)

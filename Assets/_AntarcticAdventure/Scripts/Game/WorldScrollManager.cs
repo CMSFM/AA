@@ -23,13 +23,13 @@ public class WorldScrollManager : MonoBehaviour
         }
 
         Instance = this;
-        CurrentSpeed = baseSpeed;
+        CurrentSpeed = 0f;
     }
 
     private void Update()
     {
-        if (AntarcticGameManager.Instance != null &&
-            AntarcticGameManager.Instance.IsGameOver)
+        if (AntarcticGameManager.Instance == null ||
+            !AntarcticGameManager.Instance.IsPlaying)
         {
             CurrentSpeed = 0f;
             return;

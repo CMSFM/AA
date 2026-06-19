@@ -39,23 +39,22 @@ public class ObstacleHitbox : MonoBehaviour
 
     private void TryHit(Collider other)
     {
-        AntarcticPlayerController player =
-            other.GetComponentInParent<AntarcticPlayerController>();
-
-        if (player == null)
-            return;
-
-        if (AntarcticGameManager.Instance != null &&
-            AntarcticGameManager.Instance.IsGameOver)
+        if (AntarcticGameManager.Instance == null ||
+            !AntarcticGameManager.Instance.IsPlaying)
         {
             return;
         }
-
+    
+        AntarcticPlayerController player =
+            other.GetComponentInParent<AntarcticPlayerController>();
+    
+        if (player == null)
+            return;
+    
         if (IsAvoided(player))
             return;
-
-        if (AntarcticGameManager.Instance != null)
-            AntarcticGameManager.Instance.GameOver();
+    
+        AntarcticGameManager.Instance.GameOver();
     }
 
     private bool IsAvoided(AntarcticPlayerController player)
