@@ -12,6 +12,10 @@ public class AntarcticPlayerController : MonoBehaviour
     [SerializeField] private float xLimit = 4f;
     [SerializeField] private float fixedZ = 0f;
 
+    [Header("Target Position Movement")]
+    [SerializeField] private float targetXMoveSpeed = 12f;
+    [SerializeField] private float targetXDeadZone = 0.01f;
+
     [Header("Jump")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -25f;
@@ -122,18 +126,49 @@ public class AntarcticPlayerController : MonoBehaviour
 
         verticalVelocity += gravity * Time.deltaTime;
 
-        float currentSideMoveSpeed = isSliding
-            ? sideMoveSpeed * slideSideMoveMultiplier
-            : sideMoveSpeed;
-
         Vector3 move = Vector3.zero;
-        move.x = input.Horizontal * currentSideMoveSpeed;
+
+        move.x = CalculateHorizontalMove(input);
         move.y = verticalVelocity;
         move.z = 0f;
 
         characterController.Move(move * Time.deltaTime);
 
         ClampPosition();
+    }
+
+    private float CalculateHorizontalMove(PlayerInputState input)
+    {
+        float currentSideMoveSpeed = isSliding
+            ? sideMoveSpeed * slideSideMoveMultiplier
+            : sideMoveSpeed;
+
+        if (input.HasTargetX)
+        {
+            float currentX = transform.position.x;
+            float targetX = Mathf.Clamp(input.TargetX, -xLimit, xLimit);
+
+            float deltaToTarget = targetX - currentX;
+
+            if (Mathf.Abs(deltaToTarget) <= targetXDeadZone)
+                return 0f;
+
+            float nextX = Mathf.MoveTowards(
+                currentX,
+                targetX,
+                targetXMoveSpeed * Time.deltaTime
+            );
+
+            return (nextX - currentX) / Time.deltaTime;
+        }
+
+        // 기존 방식: 버튼을 꾹 누르는 것처럼 계속 이동하는 입력.
+        // 모캡 Pelvis가 왼쪽에 머물면 Horizontal이 계속 -1에 가까워지고,
+        // 그 결과 캐릭터가 왼쪽으로 계속 이동했다.
+        //
+        // return input.Horizontal * currentSideMoveSpeed;
+
+        return input.Horizontal * currentSideMoveSpeed;
     }
 
     private void ClampPosition()
