@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_AntarcticAdventure/Scenes/Game.unity
+    guid: f29aa01a5789df24c8a1f757bfb2e44e
   m_configObjects: {}

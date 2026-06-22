@@ -37,6 +37,12 @@ public class ScoreItem : MonoBehaviour
         if (collected)
             return;
 
+        if (AntarcticGameManager.Instance == null ||
+            !AntarcticGameManager.Instance.IsPlaying)
+        {
+            return;
+        }
+
         AntarcticPlayerController player =
             other.GetComponentInParent<AntarcticPlayerController>();
 
@@ -52,6 +58,9 @@ public class ScoreItem : MonoBehaviour
 
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.AddItemScore(scoreAmount);
+
+        if (FloatingScoreTextSpawner.Instance != null)
+            FloatingScoreTextSpawner.Instance.ShowWorldText($"+{scoreAmount}", transform.position);
 
         Destroy(gameObject);
     }

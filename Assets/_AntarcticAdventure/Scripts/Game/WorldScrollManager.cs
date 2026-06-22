@@ -1,18 +1,13 @@
 using UnityEngine;
-
 public class WorldScrollManager : MonoBehaviour
 {
     public static WorldScrollManager Instance { get; private set; }
 
-    [Header("Speed")]
-    [SerializeField] private float baseSpeed = 6f;
-    [SerializeField] private float speedIncreasePerSecond = 0.05f;
-    [SerializeField] private float maxSpeed = 14f;
+    [Header("Fallback Speed")]
+    [SerializeField] private float fallbackSpeed = 6f;
 
     public float CurrentSpeed { get; private set; }
     public float Distance { get; private set; }
-
-    private float elapsedTime;
 
     private void Awake()
     {
@@ -35,13 +30,15 @@ public class WorldScrollManager : MonoBehaviour
             return;
         }
 
-        elapsedTime += Time.deltaTime;
-
-        CurrentSpeed = Mathf.Min(
-            maxSpeed,
-            baseSpeed + elapsedTime * speedIncreasePerSecond
-        );
+        CurrentSpeed = DifficultyManager.Instance != null
+            ? DifficultyManager.Instance.GetWorldSpeed(Distance)
+            : fallbackSpeed;
 
         Distance += CurrentSpeed * Time.deltaTime;
+    }
+
+    public void SetDistanceForDebug(float distance)
+    {
+        Distance = Mathf.Max(0f, distance);
     }
 }

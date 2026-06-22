@@ -86,14 +86,17 @@ public class AntarcticGameManager : MonoBehaviour
     {
         if (IsGameOver)
             return;
-
+    
         CurrentState = AntarcticGameState.GameOver;
-
+    
+        if (GameFeedbackManager.Instance != null)
+            GameFeedbackManager.Instance.PlayHitFeedback();
+    
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.SubmitCurrentScore();
-
+    
         Debug.Log("Game Over! Press R to restart.");
-
+    
         if (pauseOnGameOver)
             Time.timeScale = 0f;
     }

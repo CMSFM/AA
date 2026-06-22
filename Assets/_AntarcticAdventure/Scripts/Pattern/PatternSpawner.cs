@@ -175,8 +175,18 @@ public class PatternSpawner : MonoBehaviour
     {
         float min = Mathf.Max(1f, pattern.minNextDistance);
         float max = Mathf.Max(min, pattern.maxNextDistance);
-
-        distanceUntilNextSpawn = Random.Range(min, max);
+    
+        float baseDistance = Random.Range(min, max);
+    
+        float currentDistance = WorldScrollManager.Instance != null
+            ? WorldScrollManager.Instance.Distance
+            : 0f;
+    
+        float multiplier = DifficultyManager.Instance != null
+            ? DifficultyManager.Instance.GetSpawnDistanceMultiplier(currentDistance)
+            : 1f;
+    
+        distanceUntilNextSpawn = baseDistance * multiplier;
     }
 
     private float GetLaneX(int laneIndex)
