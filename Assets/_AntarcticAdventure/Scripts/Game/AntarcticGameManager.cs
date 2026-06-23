@@ -5,6 +5,7 @@ public enum AntarcticGameState
 {
     Ready,
     Playing,
+    Paused,
     GameOver
 }
 
@@ -16,6 +17,9 @@ public class AntarcticGameManager : MonoBehaviour
     [SerializeField] private KeyCode startKey = KeyCode.Return;
     [SerializeField] private bool allowSpaceToStart = false;
 
+    [Header("Pause")]
+    [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
+
     [Header("Game Over")]
     [SerializeField] private bool pauseOnGameOver = true;
     [SerializeField] private KeyCode restartKey = KeyCode.R;
@@ -24,6 +28,7 @@ public class AntarcticGameManager : MonoBehaviour
 
     public bool IsReady => CurrentState == AntarcticGameState.Ready;
     public bool IsPlaying => CurrentState == AntarcticGameState.Playing;
+    public bool IsPaused => CurrentState == AntarcticGameState.Paused;
     public bool IsGameOver => CurrentState == AntarcticGameState.GameOver;
 
     private void Awake()
@@ -48,6 +53,14 @@ public class AntarcticGameManager : MonoBehaviour
                 UpdateReady();
                 break;
 
+            case AntarcticGameState.Playing:
+                UpdatePlaying();
+                break;
+
+            case AntarcticGameState.Paused:
+                UpdatePaused();
+                break;
+
             case AntarcticGameState.GameOver:
                 UpdateGameOver();
                 break;
@@ -60,6 +73,28 @@ public class AntarcticGameManager : MonoBehaviour
             (allowSpaceToStart && Input.GetKeyDown(KeyCode.Space)))
         {
             StartGame();
+        }
+    }
+
+    private void UpdatePlaying()
+    {
+        if (Input.GetKeyDown(pauseKey))
+        {
+            PauseGame();
+        }
+    }
+
+    private void UpdatePaused()
+    {
+        if (Input.GetKeyDown(pauseKey))
+        {
+            ResumeGame();
+            return;
+        }
+
+        if (Input.GetKeyDown(restartKey))
+        {
+            Restart();
         }
     }
 
@@ -82,26 +117,48 @@ public class AntarcticGameManager : MonoBehaviour
         Debug.Log("[GameManager] Game Start.");
     }
 
+    public void PauseGame()
+    {
+        if (!IsPlaying)
+            return;
+
+        CurrentState = AntarcticGameState.Paused;
+        Time.timeScale = 0f;
+
+        Debug.Log("[GameManager] Pause.");
+    }
+
+    public void ResumeGame()
+    {
+        if (!IsPaused)
+            return;
+
+        CurrentState = AntarcticGameState.Playing;
+        Time.timeScale = 1f;
+
+        Debug.Log("[GameManager] Resume.");
+    }
+
     public void GameOver()
     {
         if (IsGameOver)
             return;
-    
+
         CurrentState = AntarcticGameState.GameOver;
-    
+
         if (GameFeedbackManager.Instance != null)
             GameFeedbackManager.Instance.PlayHitFeedback();
-    
+
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.SubmitCurrentScore();
-    
+
         Debug.Log("Game Over! Press R to restart.");
-    
+
         if (pauseOnGameOver)
             Time.timeScale = 0f;
     }
 
-    private void Restart()
+    public void Restart()
     {
         Time.timeScale = 1f;
 

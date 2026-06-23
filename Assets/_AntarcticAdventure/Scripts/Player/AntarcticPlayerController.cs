@@ -29,7 +29,7 @@ public class AntarcticPlayerController : MonoBehaviour
 
     public bool IsSliding => isSliding;
     public bool IsGrounded => characterController != null && characterController.isGrounded;
-
+    public float CurrentVerticalVelocity => verticalVelocity;
     private CharacterController characterController;
     private float verticalVelocity;
 

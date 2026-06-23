@@ -43,9 +43,14 @@ public class DifficultyManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
+    
         Instance = this;
         CurrentStageIndex = 0;
+    
+        if (stages != null && stages.Length > 0 && stages[0] != null)
+            CurrentStageName = stages[0].stageName;
+        else
+            CurrentStageName = "Easy";
     }
 
     private void Update()

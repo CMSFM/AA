@@ -13,7 +13,10 @@ public class AntarcticHUDView : MonoBehaviour
     [Header("Ready")]
     [SerializeField] private GameObject readyPanel;
     [SerializeField] private TMP_Text readyBestText;
-
+    
+    [Header("Pause")]
+    [SerializeField] private GameObject pausePanel;
+    
     [Header("Game Over")]
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private TMP_Text gameOverResultText;
@@ -53,6 +56,7 @@ public class AntarcticHUDView : MonoBehaviour
         UpdateDifficulty();
 
         UpdateReadyPanel();
+        UpdatePausePanel();
         UpdateGameOverPanel();
         UpdateRankingInputShortcut();
     }
@@ -97,11 +101,30 @@ public class AntarcticHUDView : MonoBehaviour
     {
         if (difficultyText == null)
             return;
-
-        string stageName = DifficultyManager.Instance != null
-            ? DifficultyManager.Instance.CurrentStageName
-            : "NONE";
-
+    
+        string stageName = "READY";
+    
+        if (AntarcticGameManager.Instance != null)
+        {
+            if (AntarcticGameManager.Instance.IsReady)
+            {
+                stageName = "READY";
+            }
+            else if (AntarcticGameManager.Instance.IsPaused)
+            {
+                stageName = "PAUSED";
+            }
+            else if (AntarcticGameManager.Instance.IsGameOver)
+            {
+                stageName = "GAME OVER";
+            }
+            else if (DifficultyManager.Instance != null &&
+                     !string.IsNullOrEmpty(DifficultyManager.Instance.CurrentStageName))
+            {
+                stageName = DifficultyManager.Instance.CurrentStageName;
+            }
+        }
+    
         difficultyText.text = stageName.ToUpper();
     }
 
@@ -300,5 +323,24 @@ public class AntarcticHUDView : MonoBehaviour
             return;
 
         gameOverPanel.SetActive(isActive);
+    }
+    private void UpdatePausePanel()
+    {
+        bool isPaused =
+            AntarcticGameManager.Instance != null &&
+            AntarcticGameManager.Instance.IsPaused;
+
+        SetPausePanel(isPaused);
+    }
+
+    private void SetPausePanel(bool isActive)
+    {
+        if (pausePanel == null)
+            return;
+
+        if (pausePanel.activeSelf == isActive)
+            return;
+
+        pausePanel.SetActive(isActive);
     }
 }
