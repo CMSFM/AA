@@ -51,17 +51,22 @@ public class ScoreItem : MonoBehaviour
 
         Collect();
     }
-
     private void Collect()
     {
         collected = true;
-
+    
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.AddItemScore(scoreAmount);
-
+    
+        if (AntarcticAudioManager.Instance != null)
+            AntarcticAudioManager.Instance.PlayItemGet();
+    
+        if (AntarcticVFXManager.Instance != null)
+            AntarcticVFXManager.Instance.PlayItemCollect(transform.position);
+    
         if (FloatingScoreTextSpawner.Instance != null)
             FloatingScoreTextSpawner.Instance.ShowWorldText($"+{scoreAmount}", transform.position);
-
+    
         Destroy(gameObject);
     }
 }

@@ -69,7 +69,7 @@ public class ScoreManager : MonoBehaviour
 
         ItemScore += amount;
 
-        Debug.Log($"[Score] Item +{amount}, Total: {TotalScore}");
+        //Debug.Log($"[Score] Item +{amount}, Total: {TotalScore}");
     }
 
     public void SubmitCurrentScore()

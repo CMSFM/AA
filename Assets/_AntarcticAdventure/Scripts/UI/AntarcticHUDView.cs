@@ -277,6 +277,9 @@ public class AntarcticHUDView : MonoBehaviour
 
         rankingRegistered = true;
 
+        if (AntarcticAudioManager.Instance != null)
+            AntarcticAudioManager.Instance.PlayRankingRegister();
+
         if (playerNameInput != null)
             playerNameInput.interactable = false;
 

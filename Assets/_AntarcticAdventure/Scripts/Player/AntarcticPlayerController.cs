@@ -96,12 +96,18 @@ public class AntarcticPlayerController : MonoBehaviour
         isSliding = true;
         slideElapsedTime = 0f;
         ApplySlideCollider();
+    
+        if (AntarcticAudioManager.Instance != null)
+            AntarcticAudioManager.Instance.PlaySlideStart();
     }
 
     private void EndSlide()
     {
         isSliding = false;
         ApplyNormalCollider();
+
+        if (AntarcticAudioManager.Instance != null)
+            AntarcticAudioManager.Instance.PlaySlideEnd();
     }
 
     private void ApplyNormalCollider()
@@ -122,8 +128,12 @@ public class AntarcticPlayerController : MonoBehaviour
             verticalVelocity = -2f;
 
         if (characterController.isGrounded && input.JumpPressed && !isSliding)
+        {
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
+        
+            if (AntarcticAudioManager.Instance != null)
+                AntarcticAudioManager.Instance.PlayJump();
+        }
         verticalVelocity += gravity * Time.deltaTime;
 
         Vector3 move = Vector3.zero;

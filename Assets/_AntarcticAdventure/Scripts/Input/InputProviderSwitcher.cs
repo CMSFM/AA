@@ -1,5 +1,11 @@
 using UnityEngine;
 
+public enum PlayerInputMode
+{
+    Keyboard,
+    Mocap
+}
+
 public class InputProviderSwitcher : MonoBehaviour
 {
     [Header("References")]
@@ -12,43 +18,74 @@ public class InputProviderSwitcher : MonoBehaviour
     [SerializeField] private KeyCode useMocapKey = KeyCode.M;
 
     [Header("Start Mode")]
-    [SerializeField] private bool startWithMocap = true;
+    [SerializeField] private PlayerInputMode startMode = PlayerInputMode.Keyboard;
+
+    [Header("Debug")]
+    [SerializeField] private bool showDebugLog = true;
+
+    public PlayerInputMode CurrentMode { get; private set; }
+    public string CurrentModeName => CurrentMode.ToString().ToUpper();
 
     private void Awake()
     {
         if (playerController == null)
             playerController = GetComponent<AntarcticPlayerController>();
 
-        if (startWithMocap && mocapProvider != null)
+        switch (startMode)
         {
-            SetProvider(mocapProvider, "Mocap");
-        }
-        else if (keyboardProvider != null)
-        {
-            SetProvider(keyboardProvider, "Keyboard");
+            case PlayerInputMode.Keyboard:
+                SetKeyboardMode();
+                break;
+
+            case PlayerInputMode.Mocap:
+                SetMocapMode();
+                break;
         }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(useKeyboardKey) && keyboardProvider != null)
-        {
-            SetProvider(keyboardProvider, "Keyboard");
-        }
+        if (Input.GetKeyDown(useKeyboardKey))
+            SetKeyboardMode();
 
-        if (Input.GetKeyDown(useMocapKey) && mocapProvider != null)
-        {
-            SetProvider(mocapProvider, "Mocap");
-        }
+        if (Input.GetKeyDown(useMocapKey))
+            SetMocapMode();
     }
 
-    private void SetProvider(PlayerInputProvider provider, string label)
+    public void SetKeyboardMode()
     {
-        if (playerController == null || provider == null)
+        if (keyboardProvider == null)
+        {
+            Debug.LogError("[InputProviderSwitcher] Keyboard Provider가 연결되지 않았습니다.", this);
             return;
+        }
+
+        SetProvider(PlayerInputMode.Keyboard, keyboardProvider);
+    }
+
+    public void SetMocapMode()
+    {
+        if (mocapProvider == null)
+        {
+            Debug.LogError("[InputProviderSwitcher] Mocap Provider가 연결되지 않았습니다.", this);
+            return;
+        }
+
+        SetProvider(PlayerInputMode.Mocap, mocapProvider);
+    }
+
+    private void SetProvider(PlayerInputMode mode, PlayerInputProvider provider)
+    {
+        if (playerController == null)
+        {
+            Debug.LogError("[InputProviderSwitcher] Player Controller가 연결되지 않았습니다.", this);
+            return;
+        }
 
         playerController.SetInputProvider(provider);
+        CurrentMode = mode;
 
-        Debug.Log($"[InputProviderSwitcher] Input Provider changed: {label}");
+        if (showDebugLog)
+            Debug.Log($"[InputProviderSwitcher] Input Mode: {CurrentModeName}");
     }
 }

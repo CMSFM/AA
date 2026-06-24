@@ -51,6 +51,12 @@ public class GameFeedbackManager : MonoBehaviour
 
     public void PlayHitFeedback()
     {
+        if (AntarcticAudioManager.Instance != null)
+            AntarcticAudioManager.Instance.PlayHit();   
+
+        if (AntarcticVFXManager.Instance != null && playerHitFeedback != null)
+            AntarcticVFXManager.Instance.PlayHit(playerHitFeedback.transform.position + Vector3.up * 0.8f); 
+
         PlayCameraShake();
         PlayPlayerHitFeedback();
     }
