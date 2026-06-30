@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,7 +10,8 @@ public class AntarcticHUDView : MonoBehaviour
     [SerializeField] private TMP_Text speedText;
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text difficultyText;
-
+[Header("Countdown")]
+[SerializeField] private MonoBehaviour countdownView;
     [Header("Ready")]
     [SerializeField] private GameObject readyPanel;
     [SerializeField] private TMP_Text readyBestText;
@@ -72,7 +74,19 @@ public class AntarcticHUDView : MonoBehaviour
 
         distanceText.text = $"DIST {distance:0000} m";
     }
+    public IEnumerator PlayCountdown()
+    {
+        if (countdownView == null)
+            yield break;
 
+        var method = countdownView.GetType().GetMethod("PlayCountdown", System.Type.EmptyTypes);
+        if (method == null)
+            yield break;
+
+        object result = method.Invoke(countdownView, null);
+        if (result is IEnumerator routine)
+            yield return routine;
+    }
     private void UpdateSpeed()
     {
         if (speedText == null)

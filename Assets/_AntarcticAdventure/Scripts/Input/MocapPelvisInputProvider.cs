@@ -77,7 +77,7 @@ public class MocapPelvisInputProvider : PlayerInputProvider
     {
         if (Input.GetKeyDown(recalibrateKey))
         {
-            Calibrate();
+            CalibrateNow();
         }
 
         if (pelvis == null)
@@ -142,12 +142,11 @@ public class MocapPelvisInputProvider : PlayerInputProvider
 
         if (calibrationTimer >= autoCalibrateDelay)
         {
-            Calibrate();
+            CalibrateNow();
         }
     }
 
-    public void Calibrate()
-    {
+public void CalibrateNow()    {
         if (pelvis == null)
         {
             Debug.LogWarning("[MocapPelvisInput] Pelvis Transform이 연결되지 않았습니다.");
