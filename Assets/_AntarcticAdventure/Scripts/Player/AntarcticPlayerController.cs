@@ -54,9 +54,9 @@ public class AntarcticPlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (AntarcticGameManager.Instance != null &&
-            AntarcticGameManager.Instance.IsGameOver)
+        if (!CanControlPlayer())
         {
+            StopPlayerActionWhileNotPlaying();
             return;
         }
 
@@ -66,6 +66,25 @@ public class AntarcticPlayerController : MonoBehaviour
 
         UpdateSlide(input);
         Move(input);
+    }
+
+    private bool CanControlPlayer()
+    {
+        return AntarcticGameManager.Instance != null &&
+               AntarcticGameManager.Instance.IsPlaying;
+    }
+
+    private void StopPlayerActionWhileNotPlaying()
+    {
+        verticalVelocity = 0f;
+
+        if (isSliding)
+        {
+            isSliding = false;
+            ApplyNormalCollider();
+        }
+
+        ClampPosition();
     }
 
     private void UpdateSlide(PlayerInputState input)
