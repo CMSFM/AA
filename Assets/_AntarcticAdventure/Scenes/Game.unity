@@ -1109,7 +1109,7 @@ MonoBehaviour:
     spawnDistanceMultiplier: 0.6
   fallbackSpeed: 6
   fallbackSpawnDistanceMultiplier: 1
-  showStageChangeLog: 1
+  showStageChangeLog: 0
 --- !u!114 &161363494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1127,7 +1127,7 @@ MonoBehaviour:
   rankingCsvFileName: AntarcticAdventure_Ranking.csv
   maxNameLength: 10
   defaultPlayerName: PLAYER
-  showSavePathLog: 1
+  showSavePathLog: 0
 --- !u!114 &161363495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1140,7 +1140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae2ec4c6711c35042aac016002d55fbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableDebugKeys: 1
+  enableDebugKeys: 0
   easyDistance: 0
   normalDistance: 100
   hardDistance: 250

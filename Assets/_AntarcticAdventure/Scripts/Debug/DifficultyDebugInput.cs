@@ -3,7 +3,7 @@ using UnityEngine;
 public class DifficultyDebugInput : MonoBehaviour
 {
     [Header("Debug")]
-    [SerializeField] private bool enableDebugKeys = true;
+    [SerializeField] private bool enableDebugKeys = false;
 
     [Header("Jump To Distance")]
     [SerializeField] private float easyDistance = 0f;
