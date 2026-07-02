@@ -217,23 +217,11 @@ public class AntarcticGameManager : MonoBehaviour
             this
         );
     }
-    
+
     private IEnumerator StartGameRoutine()
     {
         Time.timeScale = 1f;
-    
-        if (calibrateMocapOnStart)
-        {
-            if (inputProviderSwitcher != null)
-            {
-                inputProviderSwitcher.CalibrateCurrentInputIfMocap();
-            }
-            else
-            {
-                LogMissingInputProviderSwitcherOnce();
-            }
-        }
-    
+
         if (readyPanel != null)
         {
             readyPanel.SetActive(false);
@@ -242,21 +230,39 @@ public class AntarcticGameManager : MonoBehaviour
         {
             LogMissingReadyPanelOnce();
         }
-    
+
         if (useCountdown)
         {
             if (countdownView != null)
             {
-                yield return countdownView.PlayCountdown();
+                yield return countdownView.PlayCountdown(CalibrateMocapForStart);
             }
             else
             {
                 LogMissingCountdownViewOnce();
+                CalibrateMocapForStart();
             }
         }
-    
+        else
+        {
+            CalibrateMocapForStart();
+        }
+
         CurrentState = AntarcticGameState.Playing;
-    
+
         startRoutine = null;
+    }
+    private void CalibrateMocapForStart()
+    {
+        if (!calibrateMocapOnStart)
+            return;
+
+        if (inputProviderSwitcher == null)
+        {
+            LogMissingInputProviderSwitcherOnce();
+            return;
+        }
+
+        inputProviderSwitcher.CalibrateCurrentInputIfMocap();
     }
 }

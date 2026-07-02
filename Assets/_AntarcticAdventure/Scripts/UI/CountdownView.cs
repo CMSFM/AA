@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -27,7 +28,7 @@ public class CountdownView : MonoBehaviour
         countdownText.gameObject.SetActive(false);
     }
 
-    public IEnumerator PlayCountdown()
+    public IEnumerator PlayCountdown(Action onCountdownStarted = null)
     {
         if (countdownText == null)
         {
@@ -38,6 +39,12 @@ public class CountdownView : MonoBehaviour
         countdownText.gameObject.SetActive(true);
 
         countdownText.text = "3";
+
+        // 3이 화면에 뜬 직후 실행.
+        // 여기서 모캡 캘리브레이션을 호출하면 된다.
+        yield return null;
+        onCountdownStarted?.Invoke();
+
         yield return new WaitForSecondsRealtime(numberInterval);
 
         countdownText.text = "2";
@@ -60,7 +67,8 @@ public class CountdownView : MonoBehaviour
         hasLoggedMissingText = true;
 
         Debug.LogError(
-            "[CountdownView] CountdownText가 연결되지 않았습니다. GameCanvas의 CountdownView에서 CountdownText를 직접 연결하세요.",
+            "[CountdownView] CountdownText가 연결되지 않았습니다. " +
+            "GameCanvas의 CountdownView에서 CountdownText TMP_Text를 직접 연결하세요.",
             this
         );
     }
