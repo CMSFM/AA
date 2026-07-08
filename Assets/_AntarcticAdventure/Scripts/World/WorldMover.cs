@@ -2,9 +2,21 @@ using UnityEngine;
 
 public class WorldMover : MonoBehaviour
 {
-    [Header("Destroy")]
-    [SerializeField] private bool destroyWhenBehind = true;
-    [SerializeField] private float destroyZ = -15f;
+    [Header("Pool Return")]
+    [SerializeField] private bool releaseWhenBehind = true;
+    [SerializeField] private float releaseZ = -15f;
+
+    private PooledObject pooledObject;
+
+    private void Awake()
+    {
+        CachePooledObject();
+    }
+
+    private void OnEnable()
+    {
+        CachePooledObject();
+    }
 
     private void Update()
     {
@@ -17,9 +29,30 @@ public class WorldMover : MonoBehaviour
 
         transform.position += Vector3.back * speed * Time.deltaTime;
 
-        if (destroyWhenBehind && transform.position.z <= destroyZ)
+        if (releaseWhenBehind && transform.position.z <= releaseZ)
         {
-            Destroy(gameObject);
+            ReleaseOrDestroy();
         }
+    }
+
+    private void CachePooledObject()
+    {
+        if (pooledObject != null)
+            return;
+
+        pooledObject = GetComponent<PooledObject>();
+    }
+
+    private void ReleaseOrDestroy()
+    {
+        CachePooledObject();
+
+        if (pooledObject != null && pooledObject.HasPool)
+        {
+            pooledObject.Release();
+            return;
+        }
+
+        Destroy(gameObject);
     }
 }

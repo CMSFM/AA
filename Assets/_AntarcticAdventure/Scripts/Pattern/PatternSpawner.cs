@@ -146,29 +146,49 @@ public class PatternSpawner : MonoBehaviour
     {
         if (pattern.elements == null)
             return;
-
+    
         for (int i = 0; i < pattern.elements.Length; i++)
         {
             PatternSpawnElement element = pattern.elements[i];
-
+    
             if (element == null || element.prefab == null)
                 continue;
-
+    
             float laneX = GetLaneX(element.laneIndex);
-
+    
             Vector3 spawnPosition = new Vector3(
                 laneX,
                 element.y,
                 spawnZ + element.zOffset
             );
-
-            Instantiate(element.prefab, spawnPosition, Quaternion.identity);
+    
+            SpawnElementPrefab(element.prefab, spawnPosition);
         }
-
+    
         if (showDebugLog)
         {
-            Debug.Log($"[PatternSpawner] Spawned Pattern: {pattern.patternName}");
+            Debug.Log($"[PatternSpawner] Spawned Pattern: {pattern.patternName}", this);
         }
+    }
+
+    private void SpawnElementPrefab(GameObject prefab, Vector3 position)
+    {
+        if (prefab == null)
+            return;
+
+        if (WorldPoolManager.Instance != null)
+        {
+            GameObject pooledObject = WorldPoolManager.Instance.Spawn(
+                prefab,
+                position,
+                Quaternion.identity
+            );
+
+            if (pooledObject != null)
+                return;
+        }
+
+        Instantiate(prefab, position, Quaternion.identity);
     }
 
     private void ResetNextSpawnDistance(SpawnPattern pattern)

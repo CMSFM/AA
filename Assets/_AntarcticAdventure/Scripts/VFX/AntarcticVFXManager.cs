@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class AntarcticVFXManager : MonoBehaviour
@@ -65,21 +66,83 @@ public class AntarcticVFXManager : MonoBehaviour
         Transform parent = vfxRoot;
 
         if (parent == null)
-        {
             LogMissingRootOnce();
+
+        ParticleSystem instance = SpawnParticle(prefab, position, rotation, parent);
+
+        if (instance == null)
+            return;
+
+        instance.gameObject.SetActive(true);
+        instance.transform.SetPositionAndRotation(position, rotation);
+
+        if (parent != null)
+            instance.transform.SetParent(parent);
+
+        instance.Clear(true);
+        instance.Play(true);
+
+        StartCoroutine(ReturnOneShotVfxRoutine(instance));
+    }
+
+    private ParticleSystem SpawnParticle(
+        ParticleSystem prefab,
+        Vector3 position,
+        Quaternion rotation,
+        Transform parent
+    )
+    {
+        if (WorldPoolManager.Instance != null)
+        {
+            GameObject pooledObject = WorldPoolManager.Instance.Spawn(
+                prefab.gameObject,
+                position,
+                rotation,
+                parent
+            );
+
+            if (pooledObject != null &&
+                pooledObject.TryGetComponent(out ParticleSystem pooledParticle))
+            {
+                return pooledParticle;
+            }
         }
 
-        ParticleSystem instance = Instantiate(
+        return Instantiate(
             prefab,
             position,
             rotation,
             parent
         );
+    }
 
-        instance.Play();
-
-        float duration = instance.main.duration + instance.main.startLifetime.constantMax + 0.2f;
-        Destroy(instance.gameObject, duration);
+    private IEnumerator ReturnOneShotVfxRoutine(ParticleSystem instance)
+    {
+        if (instance == null)
+            yield break;
+    
+        ParticleSystem.MainModule main = instance.main;
+    
+        float duration =
+            main.duration +
+            main.startLifetime.constantMax +
+            0.2f;
+    
+        yield return new WaitForSecondsRealtime(duration);
+    
+        if (instance == null)
+            yield break;
+    
+        PooledObject pooledObject = instance.GetComponent<PooledObject>();
+    
+        if (pooledObject != null && pooledObject.HasPool)
+        {
+            instance.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            pooledObject.Release();
+            yield break;
+        }
+    
+        Destroy(instance.gameObject);
     }
 
     private void LogMissingRootOnce()
