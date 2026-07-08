@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
 public enum AntarcticGameState
 {
     Ready,
@@ -19,11 +20,11 @@ public class AntarcticGameManager : MonoBehaviour
 
     [Header("Pause")]
     [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
-[Header("UI")]
-[SerializeField] private AntarcticHUDView hudView;
+
     [Header("Game Over")]
     [SerializeField] private bool pauseOnGameOver = true;
     [SerializeField] private KeyCode restartKey = KeyCode.R;
+
     [Header("Start Flow")]
     [SerializeField] private InputProviderSwitcher inputProviderSwitcher;
     [SerializeField] private CountdownView countdownView;
@@ -32,15 +33,19 @@ public class AntarcticGameManager : MonoBehaviour
     [SerializeField] private bool useCountdown = true;
 
     private Coroutine startRoutine;
+
     private bool hasLoggedMissingInputProviderSwitcher;
     private bool hasLoggedMissingCountdownView;
     private bool hasLoggedMissingReadyPanel;
+
     public AntarcticGameState CurrentState { get; private set; }
 
     public bool IsReady => CurrentState == AntarcticGameState.Ready;
     public bool IsPlaying => CurrentState == AntarcticGameState.Playing;
     public bool IsPaused => CurrentState == AntarcticGameState.Paused;
     public bool IsGameOver => CurrentState == AntarcticGameState.GameOver;
+
+    public bool IsStarting => startRoutine != null;
 
     private void Awake()
     {
@@ -90,9 +95,7 @@ public class AntarcticGameManager : MonoBehaviour
     private void UpdatePlaying()
     {
         if (Input.GetKeyDown(pauseKey))
-        {
             PauseGame();
-        }
     }
 
     private void UpdatePaused()
@@ -104,17 +107,13 @@ public class AntarcticGameManager : MonoBehaviour
         }
 
         if (Input.GetKeyDown(restartKey))
-        {
             Restart();
-        }
     }
 
     private void UpdateGameOver()
     {
         if (Input.GetKeyDown(restartKey))
-        {
             Restart();
-        }
     }
 
     public void StartGame()
@@ -126,7 +125,7 @@ public class AntarcticGameManager : MonoBehaviour
             return;
 
         startRoutine = StartCoroutine(StartGameRoutine());
-    } 
+    }
 
     public void PauseGame()
     {
@@ -135,8 +134,6 @@ public class AntarcticGameManager : MonoBehaviour
 
         CurrentState = AntarcticGameState.Paused;
         Time.timeScale = 0f;
-
-        Debug.Log("[GameManager] Pause.");
     }
 
     public void ResumeGame()
@@ -146,8 +143,6 @@ public class AntarcticGameManager : MonoBehaviour
 
         CurrentState = AntarcticGameState.Playing;
         Time.timeScale = 1f;
-
-        Debug.Log("[GameManager] Resume.");
     }
 
     public void GameOver()
@@ -163,8 +158,6 @@ public class AntarcticGameManager : MonoBehaviour
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.SubmitCurrentScore();
 
-        Debug.Log("Game Over! Press R to restart.");
-
         if (pauseOnGameOver)
             Time.timeScale = 0f;
     }
@@ -176,6 +169,55 @@ public class AntarcticGameManager : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
     }
+
+    private IEnumerator StartGameRoutine()
+    {
+        Time.timeScale = 1f;
+
+        if (readyPanel != null)
+        {
+            readyPanel.SetActive(false);
+        }
+        else
+        {
+            LogMissingReadyPanelOnce();
+        }
+
+        if (useCountdown)
+        {
+            if (countdownView != null)
+            {
+                yield return countdownView.PlayCountdown(CalibrateMocapForStart);
+            }
+            else
+            {
+                LogMissingCountdownViewOnce();
+                CalibrateMocapForStart();
+            }
+        }
+        else
+        {
+            CalibrateMocapForStart();
+        }
+
+        CurrentState = AntarcticGameState.Playing;
+        startRoutine = null;
+    }
+
+    private void CalibrateMocapForStart()
+    {
+        if (!calibrateMocapOnStart)
+            return;
+
+        if (inputProviderSwitcher == null)
+        {
+            LogMissingInputProviderSwitcherOnce();
+            return;
+        }
+
+        inputProviderSwitcher.CalibrateCurrentInputIfMocap();
+    }
+
     private void LogMissingInputProviderSwitcherOnce()
     {
         if (hasLoggedMissingInputProviderSwitcher)
@@ -216,53 +258,5 @@ public class AntarcticGameManager : MonoBehaviour
             "GameManager의 AntarcticGameManager에서 ReadyPanel GameObject를 직접 연결하세요.",
             this
         );
-    }
-
-    private IEnumerator StartGameRoutine()
-    {
-        Time.timeScale = 1f;
-
-        if (readyPanel != null)
-        {
-            readyPanel.SetActive(false);
-        }
-        else
-        {
-            LogMissingReadyPanelOnce();
-        }
-
-        if (useCountdown)
-        {
-            if (countdownView != null)
-            {
-                yield return countdownView.PlayCountdown(CalibrateMocapForStart);
-            }
-            else
-            {
-                LogMissingCountdownViewOnce();
-                CalibrateMocapForStart();
-            }
-        }
-        else
-        {
-            CalibrateMocapForStart();
-        }
-
-        CurrentState = AntarcticGameState.Playing;
-
-        startRoutine = null;
-    }
-    private void CalibrateMocapForStart()
-    {
-        if (!calibrateMocapOnStart)
-            return;
-
-        if (inputProviderSwitcher == null)
-        {
-            LogMissingInputProviderSwitcherOnce();
-            return;
-        }
-
-        inputProviderSwitcher.CalibrateCurrentInputIfMocap();
     }
 }

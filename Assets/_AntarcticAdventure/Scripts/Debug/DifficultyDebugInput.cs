@@ -4,6 +4,7 @@ public class DifficultyDebugInput : MonoBehaviour
 {
     [Header("Debug")]
     [SerializeField] private bool enableDebugKeys = false;
+    [SerializeField] private bool showDebugLog = false;
 
     [Header("Jump To Distance")]
     [SerializeField] private float easyDistance = 0f;
@@ -42,7 +43,8 @@ public class DifficultyDebugInput : MonoBehaviour
     {
         WorldScrollManager.Instance.SetDistanceForDebug(distance);
 
-        Debug.Log($"[DifficultyDebug] Distance set to {distance:0}m");
+        if (showDebugLog)
+            Debug.Log($"[DifficultyDebug] Distance set to {distance:0}m", this);
     }
 
     private void AddDistance(float amount)
@@ -52,6 +54,7 @@ public class DifficultyDebugInput : MonoBehaviour
 
         WorldScrollManager.Instance.SetDistanceForDebug(nextDistance);
 
-        Debug.Log($"[DifficultyDebug] Distance added. Current: {nextDistance:0}m");
+        if (showDebugLog)
+            Debug.Log($"[DifficultyDebug] Distance added. Current: {nextDistance:0}m", this);
     }
 }

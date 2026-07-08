@@ -1029,7 +1029,6 @@ MonoBehaviour:
   startKey: 13
   allowSpaceToStart: 0
   pauseKey: 27
-  hudView: {fileID: 170621599}
   pauseOnGameOver: 1
   restartKey: 114
   inputProviderSwitcher: {fileID: 1983735776}
@@ -1179,13 +1178,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sfxAudioSource: {fileID: 161363499}
-  jumpClip: {fileID: 0}
+  jumpClip: {fileID: 8300000, guid: 65c0eadf6d012d14fa36c51cd661f362, type: 3}
   slideStartClip: {fileID: 0}
   slideEndClip: {fileID: 0}
-  itemGetClip: {fileID: 0}
-  hitClip: {fileID: 0}
-  uiClickClip: {fileID: 0}
-  rankingRegisterClip: {fileID: 0}
+  itemGetClip: {fileID: 8300000, guid: 91653ec52528a484881ae0dbf80676d5, type: 3}
+  hitClip: {fileID: 8300000, guid: 467ddf5ded8862d43adc880e0ed47057, type: 3}
+  uiClickClip: {fileID: 8300000, guid: f05a63ed89707824c8d20de12c32289a, type: 3}
+  rankingRegisterClip: {fileID: 8300000, guid: 2af10d898ef0bbd4db378b47a26245fa, type: 3}
   masterSfxVolume: 1
   jumpVolume: 0.8
   slideVolume: 0.8
@@ -1341,7 +1340,6 @@ MonoBehaviour:
   speedText: {fileID: 59886079}
   scoreText: {fileID: 1388295870}
   difficultyText: {fileID: 102321883}
-  countdownView: {fileID: 0}
   readyPanel: {fileID: 503954330}
   readyBestText: {fileID: 1611102758}
   pausePanel: {fileID: 876062361}
@@ -5955,6 +5953,10 @@ MonoBehaviour:
   popupRoot: {fileID: 1803903192}
   floatingScoreTextPrefab: {fileID: 8273305778370930688, guid: 24e62f9720a3c1647a66990330fe398e,
     type: 3}
+  worldCamera: {fileID: 961739752}
+  initialPoolSize: 12
+  allowPoolExpand: 1
+  maxPoolSize: 30
   worldOffset: {x: 0, y: 0.8, z: 0}
 --- !u!137 &1858088151 stripped
 SkinnedMeshRenderer:

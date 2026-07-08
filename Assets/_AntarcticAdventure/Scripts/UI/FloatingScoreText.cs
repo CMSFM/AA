@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -21,6 +22,8 @@ public class FloatingScoreText : MonoBehaviour
     private float elapsedTime;
     private bool isPlaying;
 
+    private Action<FloatingScoreText> onFinished;
+
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -30,12 +33,21 @@ public class FloatingScoreText : MonoBehaviour
             text = GetComponent<TMP_Text>();
     }
 
-    public void Play(string message, Vector2 anchoredPosition)
+    public void Play(
+        string message,
+        Vector2 anchoredPosition,
+        Action<FloatingScoreText> finishCallback
+    )
     {
+        onFinished = finishCallback;
+
+        gameObject.SetActive(true);
+
         if (text != null)
             text.text = message;
 
         startAnchoredPosition = anchoredPosition;
+
         rectTransform.anchoredPosition = startAnchoredPosition;
         rectTransform.localScale = Vector3.one * startScale;
 
@@ -43,6 +55,13 @@ public class FloatingScoreText : MonoBehaviour
 
         elapsedTime = 0f;
         isPlaying = true;
+    }
+
+    public void StopImmediately()
+    {
+        isPlaying = false;
+        canvasGroup.alpha = 0f;
+        gameObject.SetActive(false);
     }
 
     private void Update()
@@ -65,7 +84,16 @@ public class FloatingScoreText : MonoBehaviour
 
         if (t >= 1f)
         {
-            Destroy(gameObject);
+            Finish();
         }
+    }
+
+    private void Finish()
+    {
+        isPlaying = false;
+        canvasGroup.alpha = 0f;
+        gameObject.SetActive(false);
+
+        onFinished?.Invoke(this);
     }
 }

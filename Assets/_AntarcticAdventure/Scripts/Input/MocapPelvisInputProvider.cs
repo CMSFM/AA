@@ -146,31 +146,38 @@ public class MocapPelvisInputProvider : PlayerInputProvider
         }
     }
 
-public void CalibrateNow()    {
-        if (pelvis == null)
-        {
-            Debug.LogWarning("[MocapPelvisInput] Pelvis Transform이 연결되지 않았습니다.");
-            return;
-        }
-
-        Vector3 pelvisPosition = GetPelvisPosition();
-
-        baseX = pelvisPosition.x;
-        baseY = pelvisPosition.y;
-        previousY = pelvisPosition.y;
-
-        currentTargetX = 0f;
-        currentHorizontal = 0f;
-        currentHeightDelta = 0f;
-        currentVerticalVelocity = 0f;
-        slideValue = 0f;
-
-        jumpArmed = true;
-        isSlideHeld = false;
-        isCalibrated = true;
-
-        Debug.Log($"[MocapPelvisInput] 보정 완료. BaseX: {baseX:0.000}, BaseY: {baseY:0.000}");
+public void CalibrateNow()
+{
+    if (pelvis == null)
+    {
+        Debug.LogWarning("[MocapPelvisInput] Pelvis Transform이 연결되지 않았습니다.", this);
+        return;
     }
+
+    Vector3 pelvisPosition = GetPelvisPosition();
+
+    baseX = pelvisPosition.x;
+    baseY = pelvisPosition.y;
+    previousY = pelvisPosition.y;
+
+    currentTargetX = 0f;
+    currentHorizontal = 0f;
+    currentHeightDelta = 0f;
+    currentVerticalVelocity = 0f;
+    slideValue = 0f;
+
+    jumpArmed = true;
+    isSlideHeld = false;
+    isCalibrated = true;
+
+    if (showDebugLog)
+    {
+        Debug.Log(
+            $"[MocapPelvisInput] 보정 완료. BaseX: {baseX:0.000}, BaseY: {baseY:0.000}",
+            this
+        );
+    }
+}
 
     private float ReadTargetX(Vector3 pelvisPosition)
     {

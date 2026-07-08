@@ -1,4 +1,3 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,15 +9,14 @@ public class AntarcticHUDView : MonoBehaviour
     [SerializeField] private TMP_Text speedText;
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text difficultyText;
-[Header("Countdown")]
-[SerializeField] private MonoBehaviour countdownView;
+
     [Header("Ready")]
     [SerializeField] private GameObject readyPanel;
     [SerializeField] private TMP_Text readyBestText;
-    
+
     [Header("Pause")]
     [SerializeField] private GameObject pausePanel;
-    
+
     [Header("Game Over")]
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private TMP_Text gameOverResultText;
@@ -74,19 +72,7 @@ public class AntarcticHUDView : MonoBehaviour
 
         distanceText.text = $"DIST {distance:0000} m";
     }
-    public IEnumerator PlayCountdown()
-    {
-        if (countdownView == null)
-            yield break;
 
-        var method = countdownView.GetType().GetMethod("PlayCountdown", System.Type.EmptyTypes);
-        if (method == null)
-            yield break;
-
-        object result = method.Invoke(countdownView, null);
-        if (result is IEnumerator routine)
-            yield return routine;
-    }
     private void UpdateSpeed()
     {
         if (speedText == null)
@@ -115,12 +101,16 @@ public class AntarcticHUDView : MonoBehaviour
     {
         if (difficultyText == null)
             return;
-    
+
         string stageName = "READY";
-    
+
         if (AntarcticGameManager.Instance != null)
         {
-            if (AntarcticGameManager.Instance.IsReady)
+            if (AntarcticGameManager.Instance.IsStarting)
+            {
+                stageName = "START";
+            }
+            else if (AntarcticGameManager.Instance.IsReady)
             {
                 stageName = "READY";
             }
@@ -138,7 +128,7 @@ public class AntarcticHUDView : MonoBehaviour
                 stageName = DifficultyManager.Instance.CurrentStageName;
             }
         }
-    
+
         difficultyText.text = stageName.ToUpper();
     }
 
@@ -146,7 +136,8 @@ public class AntarcticHUDView : MonoBehaviour
     {
         bool isReady =
             AntarcticGameManager.Instance != null &&
-            AntarcticGameManager.Instance.IsReady;
+            AntarcticGameManager.Instance.IsReady &&
+            !AntarcticGameManager.Instance.IsStarting;
 
         SetReadyPanel(isReady);
 
@@ -169,6 +160,15 @@ public class AntarcticHUDView : MonoBehaviour
 
         readyBestText.text =
             $"BEST SCORE {bestScore:000000}   BEST DIST {bestDistance:0000} m";
+    }
+
+    private void UpdatePausePanel()
+    {
+        bool isPaused =
+            AntarcticGameManager.Instance != null &&
+            AntarcticGameManager.Instance.IsPaused;
+
+        SetPausePanel(isPaused);
     }
 
     private void UpdateGameOverPanel()
@@ -331,25 +331,6 @@ public class AntarcticHUDView : MonoBehaviour
         readyPanel.SetActive(isActive);
     }
 
-    private void SetGameOverPanel(bool isActive)
-    {
-        if (gameOverPanel == null)
-            return;
-
-        if (gameOverPanel.activeSelf == isActive)
-            return;
-
-        gameOverPanel.SetActive(isActive);
-    }
-    private void UpdatePausePanel()
-    {
-        bool isPaused =
-            AntarcticGameManager.Instance != null &&
-            AntarcticGameManager.Instance.IsPaused;
-
-        SetPausePanel(isPaused);
-    }
-
     private void SetPausePanel(bool isActive)
     {
         if (pausePanel == null)
@@ -359,5 +340,16 @@ public class AntarcticHUDView : MonoBehaviour
             return;
 
         pausePanel.SetActive(isActive);
+    }
+
+    private void SetGameOverPanel(bool isActive)
+    {
+        if (gameOverPanel == null)
+            return;
+
+        if (gameOverPanel.activeSelf == isActive)
+            return;
+
+        gameOverPanel.SetActive(isActive);
     }
 }

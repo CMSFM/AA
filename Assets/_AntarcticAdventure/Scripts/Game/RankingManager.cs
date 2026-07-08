@@ -37,7 +37,8 @@ public class RankingManager : MonoBehaviour
     [SerializeField] private string defaultPlayerName = "PLAYER";
 
     [Header("Debug")]
-    [SerializeField] private bool showSavePathLog = true;
+    [SerializeField] private bool showSavePathLog = false;
+    [SerializeField] private bool showDebugLog = false;
 
     public IReadOnlyList<RankingEntry> Entries => rankingData.entries;
     public string LastPlayerName { get; private set; }
@@ -91,7 +92,13 @@ public class RankingManager : MonoBehaviour
 
         SaveRanking();
 
-        Debug.Log($"[Ranking] Registered: {safeName}, Score: {score}, Total Saved: {rankingData.entries.Count}");
+        if (showDebugLog)
+        {
+            Debug.Log(
+                $"[Ranking] Registered: {safeName}, Score: {score}, Total Saved: {rankingData.entries.Count}",
+                this
+            );
+        }
     }
 
     public string GetRankingText(int displayCount)
