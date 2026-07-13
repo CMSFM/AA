@@ -1,0 +1,35 @@
+Antarctic Adventure - Credits
+
+Project
+- Antarctic Adventure
+- Prototype developed in Unity 6
+- Purpose: Unity gameplay / mocap input prototype
+
+Character
+- Dyp the Penguin
+- Source: 사용한 다운로드 사이트 또는 에셋명 기입
+- License: 해당 에셋 라이선스 기입
+
+Animations
+- Run / Jump / Slide animations
+- Source: Mixamo
+- License: Mixamo license
+
+SFX
+- Jump SFX: 사용한 사이트 / 파일명 기입
+- Item Get SFX: 사용한 사이트 / 파일명 기입
+- Hit SFX: 사용한 사이트 / 파일명 기입
+- UI Click SFX: 사용한 사이트 / 파일명 기입
+- Ranking Register SFX: 사용한 사이트 / 파일명 기입
+- Slide Start SFX: Pending
+- Slide End SFX: Pending
+
+VFX
+- Temporary Unity Particle System VFX
+- Item Collect VFX: Prototype particle effect
+- Hit VFX: Prototype particle effect
+- Slide Snow VFX: Prototype particle effect
+
+Notes
+- Some assets are temporary prototype resources and may be replaced later.
+- Please verify each external asset license before public release.
