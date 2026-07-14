@@ -50,15 +50,25 @@ public class AntarcticPlayerAnimationController : MonoBehaviour
             AntarcticGameManager.Instance != null &&
             AntarcticGameManager.Instance.IsPlaying;
 
-        bool isGrounded = isPlaying
-            ? playerController.IsGrounded
-            : true;
+        bool isStartGuardActive = playerController.IsStartActionGuardActive;
 
-        bool isSliding = isPlaying && playerController.IsSliding;
+        bool shouldForceStableGrounded =
+            !isPlaying ||
+            isStartGuardActive;
 
-        float targetHorizontalSpeed = isPlaying
-            ? playingRunSpeedValue
-            : stoppedRunSpeedValue;
+        bool isGrounded = shouldForceStableGrounded
+            ? true
+            : playerController.IsGrounded;
+
+        bool isSliding =
+            isPlaying &&
+            !isStartGuardActive &&
+            playerController.IsSliding;
+
+        float targetHorizontalSpeed =
+            isPlaying && !isStartGuardActive
+                ? playingRunSpeedValue
+                : stoppedRunSpeedValue;
 
         float lerpFactor = 1f - Mathf.Exp(-horizontalSpeedSmooth * Time.deltaTime);
 
@@ -68,11 +78,12 @@ public class AntarcticPlayerAnimationController : MonoBehaviour
             lerpFactor
         );
 
-        float verticalSpeed = isPlaying
-            ? playerController.CurrentVerticalVelocity * verticalSpeedScale
-            : 0f;
+        float verticalSpeed =
+            isPlaying && !isStartGuardActive
+                ? playerController.CurrentVerticalVelocity * verticalSpeedScale
+                : 0f;
 
-        if (!isPlaying)
+        if (shouldForceStableGrounded)
         {
             currentHorizontalSpeedValue = 0f;
             verticalSpeed = 0f;

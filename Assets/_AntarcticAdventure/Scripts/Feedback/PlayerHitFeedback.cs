@@ -4,69 +4,47 @@ using UnityEngine;
 
 public class PlayerHitFeedback : MonoBehaviour
 {
-    private class MaterialFlashCache
+    private class RendererMaterialCache
     {
-        public Material material;
-
-        public string colorPropertyName;
-        public Color originalColor;
-
-        public string outlineWidthPropertyName;
-        public float originalOutlineWidth;
-        public bool hasOutlineWidth;
+        public Renderer targetRenderer;
+        public Material[] originalMaterials;
+        public Material[] hitMaterials;
     }
 
     [Header("References")]
     [SerializeField] private Renderer[] renderers;
 
-    [Header("Flash")]
-    [SerializeField] private Color hitColor = Color.red;
+    [Header("Hit Material Flash")]
+    [SerializeField] private Material hitFlashMaterial;
     [SerializeField] private float flashDuration = 0.35f;
     [SerializeField] private int flashCount = 3;
 
-    [Header("Outline Flash")]
-    [SerializeField] private float hitOutlineWidth = 0.035f;
-
     [Header("Debug")]
-    [SerializeField] private bool showSkippedMaterialLog;
+    [SerializeField] private bool showDebugLog;
 
-    private readonly List<MaterialFlashCache> materialCaches = new List<MaterialFlashCache>();
+    private readonly List<RendererMaterialCache> materialCaches = new List<RendererMaterialCache>();
     private Coroutine flashCoroutine;
 
-    private static readonly string[] ColorPropertyNames =
-    {
-        "_ASEOutlineColor",
-        "_BaseColor",
-        "_Color",
-        "_TintColor",
-        "_OutlineColor",
-        "_Outline_Color",
-        "_OutlineColour"
-    };
-    
-    private static readonly string[] OutlineWidthPropertyNames =
-    {
-        "_ASEOutlineWidth",
-        "_OutlineWidth",
-        "_Outline_Width",
-        "_OutlineSize",
-        "_Outline_Size"
-    };
+    private bool hasLoggedMissingMaterial;
+    private bool hasLoggedMissingRenderers;
 
     private void Awake()
     {
         if (renderers == null || renderers.Length == 0)
             renderers = GetComponentsInChildren<Renderer>();
 
-        CacheMaterials();
+        CacheRendererMaterials();
     }
 
-    private void CacheMaterials()
+    private void CacheRendererMaterials()
     {
         materialCaches.Clear();
 
-        if (renderers == null)
+        if (renderers == null || renderers.Length == 0)
+        {
+            LogMissingRenderersOnce();
             return;
+        }
 
         for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
         {
@@ -75,70 +53,44 @@ public class PlayerHitFeedback : MonoBehaviour
             if (targetRenderer == null)
                 continue;
 
-            Material[] materials = targetRenderer.materials;
+            Material[] originalMaterials = targetRenderer.sharedMaterials;
 
-            for (int materialIndex = 0; materialIndex < materials.Length; materialIndex++)
+            if (originalMaterials == null || originalMaterials.Length == 0)
+                continue;
+
+            Material[] hitMaterials = new Material[originalMaterials.Length];
+
+            for (int materialIndex = 0; materialIndex < hitMaterials.Length; materialIndex++)
             {
-                Material material = materials[materialIndex];
-
-                if (material == null)
-                    continue;
-
-                string colorPropertyName = FindPropertyName(material, ColorPropertyNames);
-                string outlineWidthPropertyName = FindPropertyName(material, OutlineWidthPropertyNames);
-
-                bool hasColor = !string.IsNullOrEmpty(colorPropertyName);
-                bool hasOutlineWidth = !string.IsNullOrEmpty(outlineWidthPropertyName);
-
-                if (!hasColor && !hasOutlineWidth)
-                {
-                    if (showSkippedMaterialLog)
-                    {
-                        Debug.Log(
-                            $"[PlayerHitFeedback] 피격 이펙트에 사용할 색상/외곽선 프로퍼티가 없습니다. Material: {material.name}, Shader: {material.shader.name}",
-                            this
-                        );
-                    }
-
-                    continue;
-                }
-
-                MaterialFlashCache cache = new MaterialFlashCache
-                {
-                    material = material,
-                    colorPropertyName = colorPropertyName,
-                    outlineWidthPropertyName = outlineWidthPropertyName,
-                    hasOutlineWidth = hasOutlineWidth
-                };
-
-                if (hasColor)
-                    cache.originalColor = material.GetColor(colorPropertyName);
-
-                if (hasOutlineWidth)
-                    cache.originalOutlineWidth = material.GetFloat(outlineWidthPropertyName);
-
-                materialCaches.Add(cache);
+                hitMaterials[materialIndex] = hitFlashMaterial;
             }
+
+            RendererMaterialCache cache = new RendererMaterialCache
+            {
+                targetRenderer = targetRenderer,
+                originalMaterials = originalMaterials,
+                hitMaterials = hitMaterials
+            };
+
+            materialCaches.Add(cache);
         }
-    }
-
-    private string FindPropertyName(Material material, string[] propertyNames)
-    {
-        for (int i = 0; i < propertyNames.Length; i++)
-        {
-            string propertyName = propertyNames[i];
-
-            if (material.HasProperty(propertyName))
-                return propertyName;
-        }
-
-        return "";
     }
 
     public void PlayHitFeedback()
     {
-        if (materialCaches.Count == 0)
+        if (hitFlashMaterial == null)
+        {
+            LogMissingMaterialOnce();
             return;
+        }
+
+        if (materialCaches.Count == 0)
+        {
+            CacheRendererMaterials();
+
+            if (materialCaches.Count == 0)
+                return;
+        }
 
         if (flashCoroutine != null)
             StopCoroutine(flashCoroutine);
@@ -152,7 +104,7 @@ public class PlayerHitFeedback : MonoBehaviour
 
         for (int i = 0; i < flashCount; i++)
         {
-            ApplyHitFlash();
+            ApplyHitMaterials();
             yield return new WaitForSecondsRealtime(singleFlashTime);
 
             RestoreMaterials();
@@ -163,26 +115,16 @@ public class PlayerHitFeedback : MonoBehaviour
         flashCoroutine = null;
     }
 
-    private void ApplyHitFlash()
+    private void ApplyHitMaterials()
     {
         for (int i = 0; i < materialCaches.Count; i++)
         {
-            MaterialFlashCache cache = materialCaches[i];
+            RendererMaterialCache cache = materialCaches[i];
 
-            if (cache.material == null)
+            if (cache.targetRenderer == null)
                 continue;
 
-            if (!string.IsNullOrEmpty(cache.colorPropertyName) &&
-                cache.material.HasProperty(cache.colorPropertyName))
-            {
-                cache.material.SetColor(cache.colorPropertyName, hitColor);
-            }
-
-            if (cache.hasOutlineWidth &&
-                cache.material.HasProperty(cache.outlineWidthPropertyName))
-            {
-                cache.material.SetFloat(cache.outlineWidthPropertyName, hitOutlineWidth);
-            }
+            cache.targetRenderer.sharedMaterials = cache.hitMaterials;
         }
     }
 
@@ -190,22 +132,45 @@ public class PlayerHitFeedback : MonoBehaviour
     {
         for (int i = 0; i < materialCaches.Count; i++)
         {
-            MaterialFlashCache cache = materialCaches[i];
+            RendererMaterialCache cache = materialCaches[i];
 
-            if (cache.material == null)
+            if (cache.targetRenderer == null)
                 continue;
 
-            if (!string.IsNullOrEmpty(cache.colorPropertyName) &&
-                cache.material.HasProperty(cache.colorPropertyName))
-            {
-                cache.material.SetColor(cache.colorPropertyName, cache.originalColor);
-            }
-
-            if (cache.hasOutlineWidth &&
-                cache.material.HasProperty(cache.outlineWidthPropertyName))
-            {
-                cache.material.SetFloat(cache.outlineWidthPropertyName, cache.originalOutlineWidth);
-            }
+            cache.targetRenderer.sharedMaterials = cache.originalMaterials;
         }
+    }
+
+    private void LogMissingMaterialOnce()
+    {
+        if (hasLoggedMissingMaterial)
+            return;
+
+        hasLoggedMissingMaterial = true;
+
+        Debug.LogError(
+            "[PlayerHitFeedback] Hit Flash Material이 연결되지 않았습니다. " +
+            "PlayerHitFeedback에 빨간 피격용 Material을 직접 연결하세요.",
+            this
+        );
+    }
+
+    private void LogMissingRenderersOnce()
+    {
+        if (hasLoggedMissingRenderers)
+            return;
+
+        hasLoggedMissingRenderers = true;
+
+        Debug.LogError(
+            "[PlayerHitFeedback] Renderer가 없습니다. " +
+            "PlayerHitFeedback의 Renderers 배열에 캐릭터 Renderer들을 직접 연결하세요.",
+            this
+        );
+    }
+
+    private void OnDisable()
+    {
+        RestoreMaterials();
     }
 }

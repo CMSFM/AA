@@ -27,14 +27,23 @@ public class AntarcticPlayerController : MonoBehaviour
     [SerializeField] private Vector3 normalCenter = new Vector3(0f, 0f, 0f);
     [SerializeField] private Vector3 slideCenter = new Vector3(0f, -0.5f, 0f);
 
+    [Header("Start Input Guard")]
+    [SerializeField] private float actionInputIgnoreTimeOnStart = 0.2f;
+
     public bool IsSliding => isSliding;
     public bool IsGrounded => characterController != null && characterController.isGrounded;
     public float CurrentVerticalVelocity => verticalVelocity;
+public bool IsStartActionGuardActive =>
+    wasControllable &&
+    Time.unscaledTime < controlStartedTime + actionInputIgnoreTimeOnStart;
     private CharacterController characterController;
     private float verticalVelocity;
 
     private bool isSliding;
     private float slideElapsedTime;
+
+    private bool wasControllable;
+    private float controlStartedTime;
 
     private void Awake()
     {
@@ -54,15 +63,27 @@ public class AntarcticPlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!CanControlPlayer())
+        bool canControl = CanControlPlayer();
+
+        if (!canControl)
         {
+            wasControllable = false;
             StopPlayerActionWhileNotPlaying();
             return;
+        }
+
+        if (!wasControllable)
+        {
+            wasControllable = true;
+            controlStartedTime = Time.unscaledTime;
+            verticalVelocity = 0f;
         }
 
         PlayerInputState input = inputProvider != null
             ? inputProvider.ReadInput()
             : default;
+
+        input = ApplyStartInputGuard(input);
 
         UpdateSlide(input);
         Move(input);
@@ -72,6 +93,18 @@ public class AntarcticPlayerController : MonoBehaviour
     {
         return AntarcticGameManager.Instance != null &&
                AntarcticGameManager.Instance.IsPlaying;
+    }
+
+    private PlayerInputState ApplyStartInputGuard(PlayerInputState input)
+    {
+        if (Time.unscaledTime < controlStartedTime + actionInputIgnoreTimeOnStart)
+        {
+            input.JumpPressed = false;
+            input.SlidePressed = false;
+            input.SlideHeld = false;
+        }
+
+        return input;
     }
 
     private void StopPlayerActionWhileNotPlaying()
@@ -115,7 +148,7 @@ public class AntarcticPlayerController : MonoBehaviour
         isSliding = true;
         slideElapsedTime = 0f;
         ApplySlideCollider();
-    
+
         if (AntarcticAudioManager.Instance != null)
             AntarcticAudioManager.Instance.PlaySlideStart();
     }
@@ -149,10 +182,11 @@ public class AntarcticPlayerController : MonoBehaviour
         if (characterController.isGrounded && input.JumpPressed && !isSliding)
         {
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        
+
             if (AntarcticAudioManager.Instance != null)
                 AntarcticAudioManager.Instance.PlayJump();
         }
+
         verticalVelocity += gravity * Time.deltaTime;
 
         Vector3 move = Vector3.zero;
@@ -190,12 +224,6 @@ public class AntarcticPlayerController : MonoBehaviour
 
             return (nextX - currentX) / Time.deltaTime;
         }
-
-        // 기존 방식: 버튼을 꾹 누르는 것처럼 계속 이동하는 입력.
-        // 모캡 Pelvis가 왼쪽에 머물면 Horizontal이 계속 -1에 가까워지고,
-        // 그 결과 캐릭터가 왼쪽으로 계속 이동했다.
-        //
-        // return input.Horizontal * currentSideMoveSpeed;
 
         return input.Horizontal * currentSideMoveSpeed;
     }
